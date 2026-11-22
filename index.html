@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battleground</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <h1 class="logo">Battle<span>ground</span></h1>
+    <p class="tagline">Two fighters enter. One verdict leaves.</p>
+  </header>
+
+  <main class="stage">
+
+    <!-- View 1: Input form (the only visible view for now) -->
+    <section id="view-input" class="view" aria-labelledby="input-title">
+      <h2 id="input-title" class="view-title">Pick your fighters</h2>
+
+      <form id="fight-form" class="fight-form">
+        <div class="field">
+          <label for="fighter-1">Fighter 1</label>
+          <input id="fighter-1" name="fighter1" type="text" maxlength="60"
+                 placeholder="e.g. Batman" autocomplete="off">
+        </div>
+
+        <div class="versus" aria-hidden="true">VS</div>
+
+        <div class="field">
+          <label for="fighter-2">Fighter 2</label>
+          <input id="fighter-2" name="fighter2" type="text" maxlength="60"
+                 placeholder="e.g. 10 angry geese" autocomplete="off">
+        </div>
+
+        <button type="submit" class="btn btn-fight">Fight!</button>
+      </form>
+
+      <p class="hint">Fictional characters, real people, animals, or whole groups.</p>
+    </section>
+
+    <!-- View 2: Loading -->
+    <section id="view-loading" class="view view-center" aria-live="polite" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <h2 class="view-title">The fighters are squaring up…</h2>
+      <p class="muted">Consulting the judges and sketching the contenders. This can take a little while.</p>
+    </section>
+
+    <!-- View 3: Result (winner's card) -->
+    <section id="view-result" class="view" aria-labelledby="result-title" hidden>
+      <article class="winner-card">
+        <p class="eyebrow">Winner</p>
+        <h2 id="result-title" class="winner-name">Fighter name</h2>
+
+        <div class="portraits">
+          <figure class="portrait portrait-winner">
+            <div class="portrait-img">Art</div>
+            <figcaption>Fighter 1</figcaption>
+          </figure>
+          <span class="versus versus-small" aria-hidden="true">VS</span>
+          <figure class="portrait">
+            <div class="portrait-img">Art</div>
+            <figcaption>Fighter 2</figcaption>
+          </figure>
+        </div>
+
+        <p class="reasoning">The reasoning for the win will appear here.</p>
+
+        <div class="actions">
+          <button type="button" class="btn btn-secondary">Save to BattleDex</button>
+          <button type="button" class="btn">New fight</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- View 4: Error -->
+    <section id="view-error" class="view view-center" role="alert" hidden>
+      <h2 class="view-title">Fight cancelled</h2>
+      <p class="error-message muted">Something went wrong. The error message will appear here.</p>
+      <button type="button" class="btn">Try again</button>
+    </section>
+
+  </main>
+</body>
+</html>

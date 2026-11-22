@@ -1,0 +1,13 @@
+# Secrets — never commit API keys
+.env
+.env.local
+.env*.local
+
+# Vercel
+.vercel
+
+# Dependencies
+node_modules/
+
+# OS / editor
+.DS_Store
