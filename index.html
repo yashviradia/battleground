@@ -37,6 +37,8 @@
         <button type="submit" class="btn btn-fight">Fight!</button>
       </form>
 
+      <p id="form-message" class="form-message" role="alert" hidden></p>
+
       <p class="hint">Fictional characters, real people, animals, or whole groups.</p>
     </section>
 
@@ -54,22 +56,22 @@
         <h2 id="result-title" class="winner-name">Fighter name</h2>
 
         <div class="portraits">
-          <figure class="portrait portrait-winner">
+          <figure id="portrait-1" class="portrait">
             <div class="portrait-img">Art</div>
             <figcaption>Fighter 1</figcaption>
           </figure>
           <span class="versus versus-small" aria-hidden="true">VS</span>
-          <figure class="portrait">
+          <figure id="portrait-2" class="portrait">
             <div class="portrait-img">Art</div>
             <figcaption>Fighter 2</figcaption>
           </figure>
         </div>
 
-        <p class="reasoning">The reasoning for the win will appear here.</p>
+        <p id="result-reasoning" class="reasoning">The reasoning for the win will appear here.</p>
 
         <div class="actions">
           <button type="button" class="btn btn-secondary">Save to BattleDex</button>
-          <button type="button" class="btn">New fight</button>
+          <button type="button" id="new-fight-btn" class="btn">New fight</button>
         </div>
       </article>
     </section>
@@ -77,8 +79,8 @@
     <!-- View 4: Error -->
     <section id="view-error" class="view view-center" role="alert" hidden>
       <h2 class="view-title">Fight cancelled</h2>
-      <p class="error-message muted">Something went wrong. The error message will appear here.</p>
-      <button type="button" class="btn">Try again</button>
+      <p id="error-message" class="error-message muted">Something went wrong. The error message will appear here.</p>
+      <button type="button" id="try-again-btn" class="btn">Try again</button>
     </section>
 
   </main>

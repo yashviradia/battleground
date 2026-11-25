@@ -145,6 +145,18 @@ h1, h2, p {
   grid-column: 1 / -1;
 }
 
+.form-message {
+  margin-top: 14px;
+  color: var(--accent);
+  font-weight: 700;
+  text-align: center;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .hint {
   margin-top: 16px;
   font-size: 0.9rem;
