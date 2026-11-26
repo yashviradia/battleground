@@ -22,7 +22,7 @@ function createFighterCard(name, image, isWinner) {
     art.append(img);
   } else {
     art.classList.add("is-placeholder");
-    art.textContent = image?.status === "moderation_blocked" ? "Artist refused" : "No art";
+    art.textContent = image?.status === "moderation_blocked" ? "The artist refused!" : "Portrait lost!";
   }
 
   const label = document.createElement("p");

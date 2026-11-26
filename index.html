@@ -49,7 +49,9 @@
     <section id="view-loading" class="view view-center" aria-live="polite" hidden>
       <div class="spinner" aria-hidden="true"></div>
       <h2 class="view-title">The fighters are squaring up…</h2>
-      <p class="muted">Consulting the judges and sketching the contenders. This can take a little while.</p>
+      <!-- Rotating fun phrases, set by script.js. Decorative, so screen readers skip them. -->
+      <p id="loading-message" class="loading-message" aria-hidden="true">Sharpening claws…</p>
+      <p class="muted">Good fights take a moment. Grab some popcorn.</p>
     </section>
 
     <!-- View 3: Result (winner's card) -->
@@ -83,9 +85,9 @@
 
     <!-- View 4: Error -->
     <section id="view-error" class="view view-center" role="alert" hidden>
-      <h2 class="view-title">Fight cancelled</h2>
+      <h2 class="view-title">Fight called off!</h2>
       <p id="error-message" class="error-message muted">Something went wrong. The error message will appear here.</p>
-      <button type="button" id="try-again-btn" class="btn">Try again</button>
+      <button type="button" id="try-again-btn" class="btn">Back to the ring</button>
     </section>
 
   </main>

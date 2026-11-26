@@ -47,7 +47,7 @@ form.addEventListener("submit", async (event) => {
   const fighter2 = fighter2Input.value.trim();
 
   if (!fighter1 || !fighter2) {
-    formMessage.textContent = "Both fighters need a name.";
+    formMessage.textContent = "Hold up! It takes two to brawl. Both fighters need a name before they step into the ring!";
     formMessage.hidden = false;
     return;
   }
@@ -55,6 +55,7 @@ form.addEventListener("submit", async (event) => {
 
   fightButton.disabled = true;
   showView("loading");
+  startLoadingMessages();
 
   try {
     const response = await fetch("/api/fight", {
@@ -66,7 +67,7 @@ form.addEventListener("submit", async (event) => {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data.error || "Something went wrong in the arena. Try again.");
+      throw new Error(data.error || "Somebody tripped over the arena's power cord! Dust yourself off and try again.");
     }
 
     showResult(fighter1, fighter2, data);
@@ -74,13 +75,66 @@ form.addEventListener("submit", async (event) => {
     // fetch() itself throws a TypeError when the network is down.
     const message =
       error instanceof TypeError
-        ? "Couldn't reach the arena. Check your connection and try again."
+        ? "The signal to the arena got knocked out cold! Check your connection and climb back in."
         : error.message;
     showError(message);
   } finally {
+    stopLoadingMessages();
     fightButton.disabled = false;
   }
 });
+
+// ---------- Rotating loading messages ----------
+const LOADING_MESSAGES = [
+  "Sharpening claws…",
+  "Consulting the ancient scrolls…",
+  "Taping up the gloves…",
+  "Polishing the championship belt…",
+  "Bribing the referee with snacks…",
+  "Warming up the crowd…",
+  "Oiling the arena gates…",
+  "Cueing the dramatic entrance music…",
+  "Sketching the contenders…",
+  "Stretching the hamstrings…",
+  "Arguing over the rulebook…",
+  "Rolling the dice of destiny…",
+  "Sweeping up the last fight's debris…",
+  "Measuring the trash talk…",
+];
+const LOADING_INTERVAL_MS = 2500;
+const loadingMessageEl = document.getElementById("loading-message");
+let loadingTimer = null;
+let lastLoadingIndex = -1;
+
+function pickLoadingMessage() {
+  // Random, but never the same phrase twice in a row.
+  let index;
+  do {
+    index = Math.floor(Math.random() * LOADING_MESSAGES.length);
+  } while (index === lastLoadingIndex);
+  lastLoadingIndex = index;
+  return LOADING_MESSAGES[index];
+}
+
+function startLoadingMessages() {
+  stopLoadingMessages();
+  loadingMessageEl.textContent = pickLoadingMessage();
+  loadingMessageEl.classList.remove("is-fading");
+
+  loadingTimer = setInterval(() => {
+    // Fade out, swap the text, fade back in (see .loading-message in style.css).
+    loadingMessageEl.classList.add("is-fading");
+    setTimeout(() => {
+      loadingMessageEl.textContent = pickLoadingMessage();
+      loadingMessageEl.classList.remove("is-fading");
+    }, 200);
+  }, LOADING_INTERVAL_MS);
+}
+
+function stopLoadingMessages() {
+  clearInterval(loadingTimer);
+  loadingTimer = null;
+}
 
 function showResult(fighter1, fighter2, verdict) {
   currentFight = {
@@ -131,8 +185,8 @@ function renderPortraitImage(portrait, image, fighterName) {
   frame.classList.add("is-placeholder");
   frame.textContent =
     image?.status === "moderation_blocked"
-      ? "The artist refused to draw this fighter."
-      : "Art unavailable.";
+      ? "The artist took one look, dropped the brush, and refused to draw this one!"
+      : "This fighter's portrait got lost on the way to the arena!";
 }
 
 function showError(message) {
@@ -228,15 +282,15 @@ saveButton.addEventListener("click", async () => {
     fightToSave.saved = true;
     saveRecentFight(fightToSave);
     saveButton.textContent = "Saved ✓";
-    showSaveMessage("Saved to your BattleDex.");
+    showSaveMessage("Into the BattleDex it goes! A legend is preserved.");
     updateBattledexCount();
   } else {
     saveButton.disabled = false;
     saveButton.textContent = "Save to BattleDex";
     showSaveMessage(
       result === "full"
-        ? "Your BattleDex is full. Delete some saved fights to make room."
-        : "Couldn't save: this browser is blocking storage."
+        ? "The BattleDex is stuffed to the rafters! Retire some old fights to make room for new legends."
+        : "This browser has locked the BattleDex vault! The fight couldn't be saved."
     );
   }
 });

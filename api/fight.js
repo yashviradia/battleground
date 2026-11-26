@@ -134,7 +134,7 @@ async function generateImage(fighter) {
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
-    return res.status(405).json({ error: "Use POST to start a fight." });
+    return res.status(405).json({ error: "Whoa there! The arena gates only open for POST entries." });
   }
 
   // 1. Rate limit
@@ -142,7 +142,7 @@ export default async function handler(req, res) {
   if (!limit.allowed) {
     res.setHeader("Retry-After", String(limit.retryAfterSec));
     return res.status(429).json({
-      error: `Too many fights! Catch your breath and try again in ${limit.retryAfterSec} seconds.`,
+      error: `Easy, champ! The crowd needs a breather. The next bout starts in ${limit.retryAfterSec} seconds!`,
     });
   }
 
@@ -151,18 +151,18 @@ export default async function handler(req, res) {
   const fighter2 = cleanName(req.body?.fighter2);
 
   if (!fighter1 || !fighter2) {
-    return res.status(400).json({ error: "Both fighters need a name." });
+    return res.status(400).json({ error: "Hold up! It takes two to brawl. Both fighters need a name before they step into the ring!" });
   }
   if (fighter1.length > MAX_NAME_LENGTH || fighter2.length > MAX_NAME_LENGTH) {
     return res
       .status(400)
-      .json({ error: `Fighter names must be ${MAX_NAME_LENGTH} characters or fewer.` });
+      .json({ error: `What a mouthful! The announcer can only bellow names up to ${MAX_NAME_LENGTH} characters long.` });
   }
 
   // 3. Ask Claude for a verdict
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error("ANTHROPIC_API_KEY is not set. Add it to .env (local) or Vercel env vars.");
-    return res.status(500).json({ error: "The arena isn't set up yet (missing API key)." });
+    return res.status(500).json({ error: "The arena lights are still off! Someone forgot to plug in the judges (missing API key)." });
   }
 
   // Start both images now so they run in parallel with the verdict.
@@ -190,13 +190,13 @@ export default async function handler(req, res) {
 
     if (response.stop_reason === "refusal") {
       return res.status(422).json({
-        error: "The judges refused to rule on this matchup. Try different fighters.",
+        error: "The judges took one look at this matchup and stormed out of the arena! Try a different pair of fighters.",
       });
     }
 
     const verdict = response.parsed_output;
     if (!verdict) {
-      return res.status(502).json({ error: "The judges mumbled something unreadable. Try again." });
+      return res.status(502).json({ error: "The scorecard came back covered in nacho cheese, totally unreadable! Ring the bell and try again." });
     }
 
     const [imageA, imageB] = await imagesPromise;
@@ -211,16 +211,16 @@ export default async function handler(req, res) {
   } catch (error) {
     if (error instanceof Anthropic.AuthenticationError) {
       console.error("Claude API key is missing or invalid. Check ANTHROPIC_API_KEY in .env.");
-      return res.status(500).json({ error: "The arena isn't set up yet (missing API key)." });
+      return res.status(500).json({ error: "The arena lights are still off! Someone forgot to plug in the judges (missing API key)." });
     }
     if (error instanceof Anthropic.RateLimitError) {
-      return res.status(503).json({ error: "The judges are swamped. Try again in a moment." });
+      return res.status(503).json({ error: "The judges are buried under a mountain of scorecards! Give them a moment and try again." });
     }
     if (error instanceof Anthropic.APIError) {
       console.error(`Claude API error ${error.status}:`, error.message);
-      return res.status(502).json({ error: "The judges are unavailable right now. Try again." });
+      return res.status(502).json({ error: "The judges' booth has gone dark! They'll be back from their break soon. Try again in a moment." });
     }
     console.error("Unexpected error in /api/fight:", error);
-    return res.status(500).json({ error: "Something went wrong in the arena. Try again." });
+    return res.status(500).json({ error: "Somebody tripped over the arena's power cord! Dust yourself off and try again." });
   }
 }
