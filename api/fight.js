@@ -1,12 +1,23 @@
 // POST /api/fight
 // Body: { "fighter1": "Batman", "fighter2": "10 angry geese" }
-// Returns: { "winner": "fighter1" | "fighter2", "winnerName": "...", "reasoning": "..." }
+// Returns:
+// {
+//   "winner": "fighter1" | "fighter2",
+//   "winnerName": "...",
+//   "reasoning": "...",
+//   "imageA": Image,   // art for fighter 1
+//   "imageB": Image    // art for fighter 2
+// }
+// Image = { "status": "ok", "src": "data:image/webp;base64,..." }
+//       | { "status": "moderation_blocked" }   // image API refused on content-policy grounds
+//       | { "status": "failed" }               // anything else: network, timeout, outage
 //
-// Verdict half only for now: rate limiting + the Claude call.
-// Image generation will be added in a later stage.
+// The verdict and both images are generated at the same time.
+// The verdict is required; each image can fail on its own without breaking the fight.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
+import OpenAI from "openai";
 import { z } from "zod";
 import { JUDGE_PROMPT } from "./judge-prompt.js";
 
@@ -60,9 +71,65 @@ function cleanName(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-// ---------- Claude client ----------
-// Reads ANTHROPIC_API_KEY from the environment (.env locally, Vercel env vars in production).
+// ---------- Shared art style template ----------
+// Every image prompt is the fighter name plus this template, so all fighters look like they
+// belong to the same game. Change the style here only; never write it inline per request.
+const ART_STYLE =
+  "Bold flat-color illustration, thick black outlines, dynamic action pose, dramatic lighting, " +
+  "video game character art style. Keep it centered, filling most of the frame, isolated on a " +
+  "plain solid light grey background with no scenery. Absolutely no text, words, letters, " +
+  "numbers, logos, watermarks, UI elements, borders, or frames of any kind. Illustration only, " +
+  "nothing else on canvas.";
+
+function buildImagePrompt(fighter) {
+  return `${fighter}. ${ART_STYLE}`;
+}
+
+// Error codes the image API uses when it blocks a request for content-policy reasons.
+const MODERATION_CODES = new Set([
+  "moderation_blocked",
+  "content_policy_violation",
+  "image_content_policy_violation",
+]);
+
+// ---------- API clients ----------
+// Keys come from the environment (.env locally, Vercel env vars in production).
 const client = new Anthropic();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "missing" });
+
+// Generate art for one fighter. Never throws: always returns an Image object.
+async function generateImage(fighter) {
+  if (!process.env.OPENAI_API_KEY) {
+    console.error("OPENAI_API_KEY is not set. Add it to .env (local) or Vercel env vars.");
+    return { status: "failed" };
+  }
+
+  try {
+    const result = await openai.images.generate({
+      model: "gpt-image-2",
+      prompt: buildImagePrompt(fighter),
+      size: "1024x1024",
+      quality: "low",
+      // WebP keeps each image small so both fit in one API response.
+      output_format: "webp",
+      output_compression: 80,
+    });
+
+    const b64 = result.data?.[0]?.b64_json;
+    if (!b64) {
+      console.error(`Image API returned no image data for "${fighter}".`);
+      return { status: "failed" };
+    }
+    return { status: "ok", src: `data:image/webp;base64,${b64}` };
+  } catch (error) {
+    if (error instanceof OpenAI.APIError && MODERATION_CODES.has(error.code)) {
+      console.warn(`Image for "${fighter}" was blocked by moderation.`);
+      return { status: "moderation_blocked" };
+    }
+    console.error(`Image generation failed for "${fighter}":`, error.message ?? error);
+    return { status: "failed" };
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -98,6 +165,9 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "The arena isn't set up yet (missing API key)." });
   }
 
+  // Start both images now so they run in parallel with the verdict.
+  const imagesPromise = Promise.all([generateImage(fighter1), generateImage(fighter2)]);
+
   try {
     const response = await client.beta.messages.parse({
       model: "claude-sonnet-5-5",
@@ -129,10 +199,14 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: "The judges mumbled something unreadable. Try again." });
     }
 
+    const [imageA, imageB] = await imagesPromise;
+
     return res.status(200).json({
       winner: verdict.winner,
       winnerName: verdict.winner === "fighter1" ? fighter1 : fighter2,
       reasoning: verdict.reasoning,
+      imageA,
+      imageB,
     });
   } catch (error) {
     if (error instanceof Anthropic.AuthenticationError) {

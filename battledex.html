@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BattleDex · Battleground</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="battledex.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <h1 class="logo"><a href="index.html" class="logo-link">Battle<span>ground</span></a></h1>
+    <p class="tagline">Every fighter you've saved, ready for the trading card binder.</p>
+  </header>
+
+  <main class="stage">
+    <section id="view-battledex" class="view" aria-labelledby="battledex-title">
+      <div class="battledex-header">
+        <h2 id="battledex-title" class="view-title">
+          BattleDex <span id="battledex-count" class="count-badge">0</span>
+        </h2>
+        <div class="actions actions-inline">
+          <a href="index.html#recent" id="back-to-fight-btn" class="btn btn-secondary" hidden>Back to recent fight</a>
+          <a href="index.html" id="battledex-new-fight-btn" class="btn">New fight</a>
+        </div>
+      </div>
+
+      <p id="battledex-empty" class="muted battledex-empty" hidden>
+        No saved fights yet. Win (or lose) a fight and hit "Save to BattleDex".
+      </p>
+
+      <ol id="battledex-list" class="battledex-list"></ol>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/fight.js": {
+      "maxDuration": 60
+    }
+  }
+}

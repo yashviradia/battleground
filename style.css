@@ -266,6 +266,23 @@ h1, h2, p {
   color: var(--muted);
 }
 
+.portrait-img {
+  overflow: hidden;
+}
+
+.portrait-img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portrait-img.is-placeholder {
+  padding: 12px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .portrait-winner .portrait-img {
   border-color: var(--gold);
 }
@@ -319,4 +336,169 @@ h1, h2, p {
   .actions .btn {
     flex: 1;
   }
+}
+
+/* ---------- Header BattleDex button ---------- */
+.site-header {
+  position: relative;
+}
+
+.header-btn {
+  margin-top: 16px;
+}
+
+.btn-small {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+}
+
+.count-badge {
+  display: inline-block;
+  min-width: 1.6em;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+/* ---------- Save message ---------- */
+.save-message {
+  margin-top: 12px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ---------- BattleDex view ---------- */
+.battledex-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.actions-inline {
+  margin-top: 0;
+}
+
+.battledex-empty {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.battledex-list {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.battledex-entry {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.battledex-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.battledex-summary {
+  font-weight: 800;
+}
+
+.battledex-date {
+  font-weight: 400;
+  font-size: 0.85rem;
+  margin-left: 6px;
+}
+
+/* ---------- Fighter trading cards (display only, not clickable) ---------- */
+.fighter-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.fighter-card {
+  flex: 1;
+  max-width: 170px;
+  padding: 8px 8px 0;
+  background: linear-gradient(160deg, #3b3550 0%, #24202f 100%);
+  border: 3px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  cursor: default;
+  user-select: none;
+}
+
+.fighter-card.is-winner {
+  border-color: var(--gold);
+}
+
+.fighter-card-art {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #d9d9de; /* matches the light grey art background */
+  border: 2px solid #111;
+  border-radius: 6px;
+}
+
+.fighter-card-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fighter-card-art.is-placeholder {
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 8px;
+}
+
+.fighter-card-name {
+  margin: 0;
+  padding: 8px 4px 10px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .battledex-header .actions-inline {
+    width: 100%;
+  }
+
+  .fighter-cards {
+    gap: 8px;
+  }
+}
+
+/* ---------- Links styled as buttons, and the logo link ---------- */
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+}
+
+.logo-link {
+  color: inherit;
+  text-decoration: none;
 }

@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Battleground</title>
   <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+  <script type="module" src="script.js"></script>
 </head>
 <body>
   <header class="site-header">
     <h1 class="logo">Battle<span>ground</span></h1>
     <p class="tagline">Two fighters enter. One verdict leaves.</p>
+    <a href="battledex.html" class="btn btn-secondary btn-small header-btn">
+      BattleDex <span id="battledex-count" class="count-badge">0</span>
+    </a>
   </header>
 
   <main class="stage">
@@ -70,9 +73,11 @@
         <p id="result-reasoning" class="reasoning">The reasoning for the win will appear here.</p>
 
         <div class="actions">
-          <button type="button" class="btn btn-secondary">Save to BattleDex</button>
+          <button type="button" id="save-btn" class="btn btn-secondary">Save to BattleDex</button>
           <button type="button" id="new-fight-btn" class="btn">New fight</button>
         </div>
+
+        <p id="save-message" class="save-message" role="status" hidden></p>
       </article>
     </section>
 

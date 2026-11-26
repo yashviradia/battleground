@@ -57,6 +57,15 @@ Built in small stages from [project-brief.md](project-brief.md). Finish each sta
 - Handle errors: a missing fighter name, an API failure, or a response that isn't valid JSON.
 - Test it on its own, with a browser URL or `curl`, before touching the frontend.
 
+### Image rules (apply to every image, once image generation is added)
+
+- **Shared art style template:** every image prompt must include this exact template, so all fighters look like they belong to the same game:
+
+  > Bold flat-color illustration, thick black outlines, dynamic action pose, dramatic lighting, video game character art style. Keep it centered, filling most of the frame, isolated on a plain solid light grey background with no scenery. Absolutely no text, words, letters, numbers, logos, watermarks, UI elements, borders, or frames of any kind. Illustration only, nothing else on canvas.
+
+- Keep the template in one shared place in the code (a single constant), and build every image prompt as the fighter name plus the template. Never write the style inline per request.
+- **Moderation-blocked is its own error case.** When the image API blocks a request for content-policy reasons, return a distinct `moderation_blocked` error, separate from a generic image failure (network error, timeout, API outage). The frontend can then tell the user "the artist refused to draw this fighter" instead of "something went wrong", and a generic failure can be retried while a moderation block cannot.
+
 **Done when:** calling `/api/verdict` with two fighters returns a winner and humorous reasoning every time.
 
 ---
@@ -99,19 +108,7 @@ Built in small stages from [project-brief.md](project-brief.md). Finish each sta
 
 ---
 
-## Stage 7 — Winner's card animation
-
-**Goal:** make the result fun to watch.
-
-- Add an entrance animation to the winner's card (CSS animations or transitions).
-- Make the winner stand out visually from the loser.
-- Polish the loading state so the wait feels part of the experience, since images can take 10–30 seconds.
-
-**Done when:** the result appears with an animation and the winner is obvious at a glance.
-
----
-
-## Stage 8 — BattleDex (save fights)
+## Stage 7 — BattleDex (save fights)
 
 **Goal:** save fights and view them later, all in localStorage.
 
@@ -119,21 +116,55 @@ Built in small stages from [project-brief.md](project-brief.md). Finish each sta
 - Before saving, downsize both images (draw them on a `<canvas>` at about 256px and export as JPEG or WebP).
 - Save the whole fight: both fighter names, winner, reasoning, both images, and the date.
 - Add a BattleDex view that lists saved fights, with a way to delete one.
+- **Fighter cards:** each saved fighter displays as a styled card in a mini trading card look, with the image on top and the name below.
+  - Cards are display only: they are not clickable and don't open a detail view, since they only hold a name and an image.
+  - If a fighter has no art (moderation-blocked or failed), the card shows a placeholder where the image would be.
+- **Navigation buttons on the BattleDex view:**
+  - **Back to recent fight:** jumps back to the result view of your most recent fight. Hide or disable it when there is no recent fight to return to (for example, after a page reload).
+  - **New fight:** goes to the input form to start a new fight.
 - Handle localStorage being full by showing a message instead of failing silently.
 
-**Done when:** a saved fight still shows its verdict and art after a page reload.
+**Done when:** a saved fight still shows its fighter cards (art and names) after a page reload, the cards can't be clicked, and both buttons take you to the right view.
 
 ---
 
-## Stage 9 — Deploy
+## Stage 8 — Claude redesign
 
-**Goal:** a live link to share with friends and put in your portfolio.
+**Goal:** a full visual overhaul of the whole app, not just a polished verdict screen.
 
+Instead of only polishing the verdict UI, this stage hands the entire app to Claude Design for a complete redesign. By now every feature works, so the design can cover the finished app in one pass.
+
+- Give Claude Design every screen: the input form, loading view, result view (winner's card), error view, and the BattleDex.
+- Ask for a cohesive look across all of them: layout, colors, typography, buttons, and how the fighter art is framed.
+- Include the motion work in the redesign:
+  - an entrance animation for the winner's card,
+  - making the winner stand out clearly from the loser,
+  - a loading view that feels part of the experience, since a fight can take 10–30 seconds.
+- Keep the app working while restyling: leave the element IDs, the `hidden`-attribute view switching, and the JavaScript hooks in place, so the redesign changes how things look, not how they work.
+- Check the result on desktop and phone, and respect reduced-motion settings for the animations.
+
+**Done when:** every screen has the new design, the winner's card animates in with the winner obvious at a glance, and a full fight plus a BattleDex save still work exactly as before.
+
+---
+
+## Stage 9 — Final QA and deploy to Vercel
+
+**Goal:** a tested app on a live link to share with friends and put in your portfolio.
+
+**QA locally first (`vercel dev`):**
+- Fights with an animal, a fictional character, a real person, and a group (e.g. "10 cows").
+- A fighter the image API blocks shows the "artist refused" placeholder; a generic image failure shows "Art unavailable"; the verdict still shows in both cases.
+- Empty or overly long names show a clear message.
+- The 6th fight within a minute is rate limited with a friendly message.
+- BattleDex: save, reload the page, view, delete, and the "storage full" message.
+- Everything looks right on desktop and phone.
+
+**Deploy to Vercel:**
 - Deploy to Vercel and add both API keys as environment variables in the Vercel dashboard.
-- Test a full fight and a BattleDex save on the live site, on both desktop and phone.
+- Repeat a full fight and a BattleDex save on the live site, on both desktop and phone.
 - Optional but recommended: set a spending cap on both API accounts, since the link will be public.
 
-**Done when:** the live URL works end to end.
+**Done when:** every QA check passes locally, and the live URL works end to end.
 
 ---
 
