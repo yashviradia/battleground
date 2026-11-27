@@ -54,6 +54,8 @@ form.addEventListener("submit", async (event) => {
   formMessage.hidden = true;
 
   fightButton.disabled = true;
+  document.getElementById("loading-name-1").textContent = fighter1;
+  document.getElementById("loading-name-2").textContent = fighter2;
   showView("loading");
   startLoadingMessages();
 
@@ -157,12 +159,15 @@ function showResult(fighter1, fighter2, verdict) {
   winnerNameEl.textContent = verdict.winnerName;
   reasoningEl.textContent = verdict.reasoning;
 
-  portrait1.querySelector("figcaption").textContent = fighter1;
-  portrait2.querySelector("figcaption").textContent = fighter2;
+  portrait1.querySelector(".portrait-name").textContent = fighter1;
+  portrait2.querySelector(".portrait-name").textContent = fighter2;
   renderPortraitImage(portrait1, verdict.imageA, fighter1);
   renderPortraitImage(portrait2, verdict.imageB, fighter2);
+  // Winner gets the gold frame, glow, crown and ribbon; loser gets the K.O. stamp (see style.css).
   portrait1.classList.toggle("portrait-winner", verdict.winner === "fighter1");
   portrait2.classList.toggle("portrait-winner", verdict.winner === "fighter2");
+  portrait1.classList.toggle("portrait-loser", verdict.winner !== "fighter1");
+  portrait2.classList.toggle("portrait-loser", verdict.winner !== "fighter2");
 
   showView("result");
 }
@@ -200,6 +205,17 @@ document.getElementById("new-fight-btn").addEventListener("click", () => {
   showView("input");
   fighter1Input.focus();
 });
+
+// ---------- Example matchups ----------
+// Clicking a suggestion fills both names; the user still presses Fight.
+for (const chip of document.querySelectorAll(".chip")) {
+  chip.addEventListener("click", () => {
+    fighter1Input.value = chip.dataset.fighter1;
+    fighter2Input.value = chip.dataset.fighter2;
+    formMessage.hidden = true;
+    fightButton.focus();
+  });
+}
 
 document.getElementById("try-again-btn").addEventListener("click", () => {
   // Keep the names so the user can retry the same fight.

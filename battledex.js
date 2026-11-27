@@ -30,7 +30,39 @@ function createFighterCard(name, image, isWinner) {
   label.textContent = name;
 
   card.append(art, label);
+  if (isWinner) card.prepend(createCrown());
   return card;
+}
+
+// Small winner's crown that sits on top of the winning card.
+function createCrown() {
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("class", "fighter-card-crown");
+  svg.setAttribute("width", "34");
+  svg.setAttribute("height", "26");
+  svg.setAttribute("viewBox", "0 0 36 28");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Winner");
+
+  const crown = document.createElementNS(SVG_NS, "path");
+  crown.setAttribute("d", "M3 24 L5 7 L12 15 L18 3 L24 15 L31 7 L33 24 Z");
+  crown.setAttribute("fill", "#FFD23F");
+  crown.setAttribute("stroke", "#0B0718");
+  crown.setAttribute("stroke-width", "2.5");
+  crown.setAttribute("stroke-linejoin", "round");
+
+  const band = document.createElementNS(SVG_NS, "rect");
+  band.setAttribute("x", "3");
+  band.setAttribute("y", "22");
+  band.setAttribute("width", "30");
+  band.setAttribute("height", "5");
+  band.setAttribute("fill", "#E01E37");
+  band.setAttribute("stroke", "#0B0718");
+  band.setAttribute("stroke-width", "2.5");
+
+  svg.append(crown, band);
+  return svg;
 }
 
 function formatDate(iso) {
@@ -76,7 +108,7 @@ function renderBattledex() {
     const cards = document.createElement("div");
     cards.className = "fighter-cards";
     const vs = document.createElement("span");
-    vs.className = "versus versus-small";
+    vs.className = "vs-text";
     vs.setAttribute("aria-hidden", "true");
     vs.textContent = "VS";
     cards.append(
