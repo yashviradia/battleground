@@ -6,40 +6,62 @@
   <title>BattleDex · Battleground</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Press+Start+2P&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="battledex.js"></script>
 </head>
-<body>
-  <header class="topbar">
-    <a href="index.html" class="topbar-logo">Battle<span>ground</span></a>
-    <p class="pixel-label">Hall of legends</p>
-  </header>
-
-  <main class="stage stage-wide">
+<body class="dex-page">
+  <main class="shell shell-wide">
     <section id="view-battledex" class="view" aria-labelledby="battledex-title">
-      <div class="battledex-header">
-        <div class="battledex-heading">
-          <h1 id="battledex-title" class="battledex-title">
-            BattleDex <span id="battledex-count" class="count-badge count-badge-big">0</span>
-          </h1>
-          <p class="hero-tagline">Every fight you've saved, ready for the trading card binder.</p>
+      <div class="dex-header">
+        <a href="index.html" class="icon-btn" aria-label="Back to the arena">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+        </a>
+        <div>
+          <h1 id="battledex-title" class="dex-title carved">BATTLEDEX</h1>
+          <p class="dex-sub">Hall of champions · <span id="battledex-count">0</span> bouts recorded</p>
         </div>
-        <nav class="actions actions-inline" aria-label="BattleDex actions">
-          <a href="index.html#recent" id="back-to-fight-btn" class="btn btn-cyan" hidden>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
-            Back to recent fight
-          </a>
-          <a href="index.html" id="battledex-new-fight-btn" class="btn btn-red">New fight</a>
-        </nav>
       </div>
 
-      <p id="battledex-empty" class="battledex-empty" hidden>
-        The trophy shelf is empty! Step into the ring, start a fight, and hit "Save to BattleDex" to crown your first legend.
+      <div class="greek-key greek-key-dim" aria-hidden="true"></div>
+
+      <a href="index.html#recent" id="back-to-fight-btn" class="btn btn-outline" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+        BACK TO RECENT BOUT
+      </a>
+
+      <div class="dex-tools">
+        <div class="dex-search">
+          <label for="dex-search">SEARCH THE RECORDS</label>
+          <input id="dex-search" type="search" placeholder="Bear, knight, kraken…" autocomplete="off">
+        </div>
+        <div class="dex-sort" role="group" aria-label="Sort bouts">
+          <button type="button" class="sort-btn" data-sort="newest" aria-pressed="true">NEWEST</button>
+          <button type="button" class="sort-btn" data-sort="az" aria-pressed="false">A–Z</button>
+          <button type="button" class="sort-btn" data-sort="oldest" aria-pressed="false">OLDEST</button>
+        </div>
+      </div>
+
+      <p id="battledex-empty" class="dex-empty" hidden>
+        The hall stands empty! Enter the arena, stage a bout, and inscribe it in your BattleDex to honour your first champion.
+      </p>
+      <p id="battledex-no-match" class="dex-empty" hidden>
+        No bout in the records matches that name.
       </p>
 
-      <ol id="battledex-list" class="battledex-list"></ol>
+      <ol id="battledex-list" class="dex-grid"></ol>
     </section>
   </main>
+
+  <nav class="bottom-nav" aria-label="Main">
+    <a href="index.html" class="bottom-nav-link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"></path><path d="M13 19l6-6M16 16l4 4M19 21l2-2"></path></svg>
+      ARENA
+    </a>
+    <a href="battledex.html" class="bottom-nav-link bronze" aria-current="page">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v13"></path><path d="M6 3a2 2 0 0 0-2 2v1h4"></path><path d="M8 5v14a2 2 0 0 1-2 2"></path><path d="M6 21h12a2 2 0 0 0 2-2v-1H10v1a2 2 0 0 1-2 2"></path></svg>
+      BATTLEDEX
+    </a>
+  </nav>
 </body>
 </html>

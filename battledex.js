@@ -1,68 +1,66 @@
-// Battleground — BattleDex page (battledex.html): lists saved fights as trading cards.
+// Battleground — BattleDex page (battledex.html): the hall of saved bouts, as trading cards.
 
 import { loadFights, storeFights, loadRecentFight } from "./storage.js";
 
 const list = document.getElementById("battledex-list");
 const emptyMessage = document.getElementById("battledex-empty");
-const countBadge = document.getElementById("battledex-count");
+const noMatchMessage = document.getElementById("battledex-no-match");
+const countEl = document.getElementById("battledex-count");
 const backToFightLink = document.getElementById("back-to-fight-btn");
+const searchInput = document.getElementById("dex-search");
+const sortButtons = document.querySelectorAll(".sort-btn");
 
-// One fighter as a mini trading card: image on top, name below. Display only, not clickable.
-function createFighterCard(name, image, isWinner) {
-  const card = document.createElement("div");
-  card.className = "fighter-card" + (isWinner ? " is-winner" : "");
+let sortMode = "newest"; // "newest" | "az" | "oldest"
 
-  const art = document.createElement("div");
-  art.className = "fighter-card-art";
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+// Build a small stroke icon from SVG path strings.
+function createIcon(paths, size = 14) {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("width", String(size));
+  svg.setAttribute("height", String(size));
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("aria-hidden", "true");
+  for (const d of paths) {
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", d);
+    svg.append(path);
+  }
+  return svg;
+}
+
+const LAUREL = [
+  "M12 21C6 20 3 15 3 8M12 21c6-1 9-6 9-13",
+  "M5 15l-2-1M4 11l-2-2M7 18l-2 0M19 15l2-1M20 11l2-2M17 18l2 0",
+];
+const TRASH = ["M3 6h18", "M8 6V4h8v2", "M6 6l1 14h10l1-14", "M10 10v6M14 10v6"];
+
+// First letter of the name, skipping a leading count ("100 ducks" -> "D").
+function initialOf(name) {
+  return (name.replace(/^[0-9\s]+/, "").charAt(0) || name.charAt(0)).toUpperCase();
+}
+
+// One fighter's mini portrait: the saved art, or their initial when there is none.
+function createMini(name, image, colorClass, isWinner) {
+  const mini = document.createElement("div");
+  mini.className = `mini ${colorClass} ${isWinner ? "is-winner" : "is-loser"}`;
+
   if (image?.status === "ok" && image.src) {
     const img = document.createElement("img");
     img.src = image.src;
-    img.alt = `Art of ${name}`;
+    img.alt = "";
     img.loading = "lazy";
-    art.append(img);
+    mini.append(img);
   } else {
-    art.classList.add("is-placeholder");
-    art.textContent = image?.status === "moderation_blocked" ? "The artist refused!" : "Portrait lost!";
+    mini.textContent = initialOf(name);
+    mini.title = image?.status === "moderation_blocked" ? "The painter refused!" : "Portrait lost!";
   }
-
-  const label = document.createElement("p");
-  label.className = "fighter-card-name";
-  label.textContent = name;
-
-  card.append(art, label);
-  if (isWinner) card.prepend(createCrown());
-  return card;
-}
-
-// Small winner's crown that sits on top of the winning card.
-function createCrown() {
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("class", "fighter-card-crown");
-  svg.setAttribute("width", "34");
-  svg.setAttribute("height", "26");
-  svg.setAttribute("viewBox", "0 0 36 28");
-  svg.setAttribute("role", "img");
-  svg.setAttribute("aria-label", "Winner");
-
-  const crown = document.createElementNS(SVG_NS, "path");
-  crown.setAttribute("d", "M3 24 L5 7 L12 15 L18 3 L24 15 L31 7 L33 24 Z");
-  crown.setAttribute("fill", "#FFD23F");
-  crown.setAttribute("stroke", "#0B0718");
-  crown.setAttribute("stroke-width", "2.5");
-  crown.setAttribute("stroke-linejoin", "round");
-
-  const band = document.createElementNS(SVG_NS, "rect");
-  band.setAttribute("x", "3");
-  band.setAttribute("y", "22");
-  band.setAttribute("width", "30");
-  band.setAttribute("height", "5");
-  band.setAttribute("fill", "#E01E37");
-  band.setAttribute("stroke", "#0B0718");
-  band.setAttribute("stroke-width", "2.5");
-
-  svg.append(crown, band);
-  return svg;
+  return mini;
 }
 
 function formatDate(iso) {
@@ -72,54 +70,89 @@ function formatDate(iso) {
     : date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
+function winnerNameOf(fight) {
+  return fight.winnerName ?? (fight.winner === "fighter1" ? fight.fighter1 : fight.fighter2);
+}
+
+// A saved bout as a trading card. Display only, not clickable.
+function createCard(fight) {
+  const card = document.createElement("li");
+  card.className = "dex-card";
+
+  const minis = document.createElement("div");
+  minis.className = "dex-minis";
+  minis.setAttribute("aria-hidden", "true");
+  const vs = document.createElement("span");
+  vs.className = "mini-vs bronze";
+  vs.textContent = "VS";
+  minis.append(
+    createMini(fight.fighter1, fight.imageA, "mini-red", fight.winner === "fighter1"),
+    vs,
+    createMini(fight.fighter2, fight.imageB, "mini-blue", fight.winner === "fighter2")
+  );
+
+  const names = document.createElement("div");
+  names.className = "dex-names";
+  const nameA = document.createElement("p");
+  nameA.className = "dex-name-a";
+  nameA.textContent = fight.fighter1;
+  const nameB = document.createElement("p");
+  nameB.className = "dex-name-b";
+  nameB.textContent = `vs ${fight.fighter2}`;
+  const date = document.createElement("p");
+  date.className = "dex-date";
+  date.textContent = formatDate(fight.savedAt);
+  names.append(nameA, nameB, date);
+
+  const foot = document.createElement("div");
+  foot.className = "dex-foot";
+  const winner = document.createElement("span");
+  winner.className = "dex-winner";
+  winner.textContent = winnerNameOf(fight);
+  winner.title = `${winnerNameOf(fight)} wins`;
+
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.className = "dex-delete";
+  deleteButton.setAttribute("aria-label", `Delete ${fight.fighter1} vs ${fight.fighter2}`);
+  deleteButton.append(createIcon(TRASH, 18));
+  deleteButton.addEventListener("click", () => deleteFight(fight.id));
+
+  foot.append(createIcon(LAUREL), winner, deleteButton);
+
+  card.append(minis, names, foot);
+  return card;
+}
+
+function sortFights(fights) {
+  const sorted = [...fights];
+  if (sortMode === "az") {
+    sorted.sort((a, b) => a.fighter1.localeCompare(b.fighter1, undefined, { sensitivity: "base" }));
+  } else {
+    // Saved fights are stored newest first.
+    sorted.sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt)));
+    if (sortMode === "oldest") sorted.reverse();
+  }
+  return sorted;
+}
+
+function matchesSearch(fight, query) {
+  if (!query) return true;
+  return [fight.fighter1, fight.fighter2, winnerNameOf(fight)].some((name) =>
+    String(name).toLowerCase().includes(query)
+  );
+}
+
 function renderBattledex() {
   const fights = loadFights();
-  list.replaceChildren();
+  countEl.textContent = String(fights.length);
   emptyMessage.hidden = fights.length > 0;
-  countBadge.textContent = String(fights.length);
 
-  for (const fight of fights) {
-    const entry = document.createElement("li");
-    entry.className = "battledex-entry";
+  const query = searchInput.value.trim().toLowerCase();
+  const shown = sortFights(fights).filter((fight) => matchesSearch(fight, query));
+  noMatchMessage.hidden = fights.length === 0 || shown.length > 0;
 
-    const meta = document.createElement("div");
-    meta.className = "battledex-meta";
-
-    const summary = document.createElement("p");
-    summary.className = "battledex-summary";
-    const winnerName =
-      fight.winnerName ?? (fight.winner === "fighter1" ? fight.fighter1 : fight.fighter2);
-    summary.textContent = `${winnerName} wins`;
-
-    const date = document.createElement("span");
-    date.className = "muted battledex-date";
-    date.textContent = formatDate(fight.savedAt);
-    summary.append(" ", date);
-
-    const deleteButton = document.createElement("button");
-    deleteButton.type = "button";
-    deleteButton.className = "btn btn-secondary btn-small";
-    deleteButton.textContent = "Delete";
-    deleteButton.setAttribute("aria-label", `Delete ${fight.fighter1} vs ${fight.fighter2}`);
-    deleteButton.addEventListener("click", () => deleteFight(fight.id));
-
-    meta.append(summary, deleteButton);
-
-    const cards = document.createElement("div");
-    cards.className = "fighter-cards";
-    const vs = document.createElement("span");
-    vs.className = "vs-text";
-    vs.setAttribute("aria-hidden", "true");
-    vs.textContent = "VS";
-    cards.append(
-      createFighterCard(fight.fighter1, fight.imageA, fight.winner === "fighter1"),
-      vs,
-      createFighterCard(fight.fighter2, fight.imageB, fight.winner === "fighter2")
-    );
-
-    entry.append(meta, cards);
-    list.append(entry);
-  }
+  list.replaceChildren(...shown.map(createCard));
 }
 
 function deleteFight(id) {
@@ -127,7 +160,19 @@ function deleteFight(id) {
   renderBattledex();
 }
 
-// Only offer "Back to recent fight" when this tab has a recent fight to return to.
+searchInput.addEventListener("input", renderBattledex);
+
+for (const button of sortButtons) {
+  button.addEventListener("click", () => {
+    sortMode = button.dataset.sort;
+    for (const other of sortButtons) {
+      other.setAttribute("aria-pressed", String(other === button));
+    }
+    renderBattledex();
+  });
+}
+
+// Only offer "Back to recent bout" when this tab has a recent fight to return to.
 backToFightLink.hidden = loadRecentFight() === null;
 
 renderBattledex();

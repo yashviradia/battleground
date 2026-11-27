@@ -23,7 +23,7 @@ const form = document.getElementById("fight-form");
 const fighter1Input = document.getElementById("fighter-1");
 const fighter2Input = document.getElementById("fighter-2");
 const formMessage = document.getElementById("form-message");
-const fightButton = form.querySelector(".btn-fight");
+const fightButton = form.querySelector("button[type=\"submit\"]");
 
 const winnerNameEl = document.getElementById("result-title");
 const reasoningEl = document.getElementById("result-reasoning");
@@ -32,6 +32,8 @@ const portrait2 = document.getElementById("portrait-2");
 const errorMessageEl = document.getElementById("error-message");
 
 const saveButton = document.getElementById("save-btn");
+const saveButtonText = saveButton.querySelector(".inscribe-text");
+const rematchButton = document.getElementById("rematch-btn");
 const saveMessage = document.getElementById("save-message");
 const battledexCount = document.getElementById("battledex-count");
 
@@ -40,20 +42,25 @@ const battledexCount = document.getElementById("battledex-count");
 let currentFight = null;
 
 // ---------- Fight flow ----------
-form.addEventListener("submit", async (event) => {
+form.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const fighter1 = fighter1Input.value.trim();
   const fighter2 = fighter2Input.value.trim();
 
   if (!fighter1 || !fighter2) {
-    formMessage.textContent = "Hold up! It takes two to brawl. Both fighters need a name before they step into the ring!";
+    formMessage.textContent = "Hold, champion! It takes two to make a bout. Both challengers need a name before they enter the arena!";
     formMessage.hidden = false;
     return;
   }
   formMessage.hidden = true;
 
+  runFight(fighter1, fighter2);
+});
+
+async function runFight(fighter1, fighter2) {
   fightButton.disabled = true;
+  rematchButton.disabled = true;
   document.getElementById("loading-name-1").textContent = fighter1;
   document.getElementById("loading-name-2").textContent = fighter2;
   showView("loading");
@@ -83,24 +90,26 @@ form.addEventListener("submit", async (event) => {
   } finally {
     stopLoadingMessages();
     fightButton.disabled = false;
+    rematchButton.disabled = false;
   }
-});
+}
 
 // ---------- Rotating loading messages ----------
 const LOADING_MESSAGES = [
-  "Sharpening claws…",
+  "The oracle weighs strength, cunning and nerve…",
+  "Sharpening the swords…",
   "Consulting the ancient scrolls…",
-  "Taping up the gloves…",
-  "Polishing the championship belt…",
-  "Bribing the referee with snacks…",
+  "Raking the arena sand…",
+  "Polishing the laurel wreaths…",
+  "Bribing the referee with figs…",
   "Warming up the crowd…",
   "Oiling the arena gates…",
-  "Cueing the dramatic entrance music…",
-  "Sketching the contenders…",
+  "Sounding the trumpets…",
+  "Grinding the painters' pigments…",
   "Stretching the hamstrings…",
   "Arguing over the rulebook…",
-  "Rolling the dice of destiny…",
-  "Sweeping up the last fight's debris…",
+  "Casting the bones of destiny…",
+  "Sweeping up the last bout's debris…",
   "Measuring the trash talk…",
 ];
 const LOADING_INTERVAL_MS = 2500;
@@ -152,18 +161,17 @@ function showResult(fighter1, fighter2, verdict) {
   saveRecentFight(currentFight);
 
   // A new fight can be saved; a restored fight that was already saved can't be saved twice.
-  saveButton.disabled = currentFight.saved;
-  saveButton.textContent = currentFight.saved ? "Saved ✓" : "Save to BattleDex";
+  setSaveButton(currentFight.saved ? "saved" : "ready");
   saveMessage.hidden = true;
 
-  winnerNameEl.textContent = verdict.winnerName;
+  winnerNameEl.textContent = `${verdict.winnerName} triumphs`;
   reasoningEl.textContent = verdict.reasoning;
 
   portrait1.querySelector(".portrait-name").textContent = fighter1;
   portrait2.querySelector(".portrait-name").textContent = fighter2;
   renderPortraitImage(portrait1, verdict.imageA, fighter1);
   renderPortraitImage(portrait2, verdict.imageB, fighter2);
-  // Winner gets the gold frame, glow, crown and ribbon; loser gets the K.O. stamp (see style.css).
+  // Winner gets the glowing frame and VICTOR badge; loser is greyed out and VANQUISHED (see style.css).
   portrait1.classList.toggle("portrait-winner", verdict.winner === "fighter1");
   portrait2.classList.toggle("portrait-winner", verdict.winner === "fighter2");
   portrait1.classList.toggle("portrait-loser", verdict.winner !== "fighter1");
@@ -190,7 +198,7 @@ function renderPortraitImage(portrait, image, fighterName) {
   frame.classList.add("is-placeholder");
   frame.textContent =
     image?.status === "moderation_blocked"
-      ? "The artist took one look, dropped the brush, and refused to draw this one!"
+      ? "The painter took one look, dropped the brush, and refused to paint this one!"
       : "This fighter's portrait got lost on the way to the arena!";
 }
 
@@ -200,22 +208,49 @@ function showError(message) {
 }
 
 // ---------- Back to the form ----------
-document.getElementById("new-fight-btn").addEventListener("click", () => {
+function backToForm() {
   form.reset();
   showView("input");
   fighter1Input.focus();
+}
+document.getElementById("new-fight-btn").addEventListener("click", backToForm);
+document.getElementById("back-btn").addEventListener("click", backToForm);
+
+// Same two fighters, a fresh verdict and fresh portraits.
+rematchButton.addEventListener("click", () => {
+  if (!currentFight) return;
+  fighter1Input.value = currentFight.fighter1;
+  fighter2Input.value = currentFight.fighter2;
+  runFight(currentFight.fighter1, currentFight.fighter2);
 });
 
-// ---------- Example matchups ----------
-// Clicking a suggestion fills both names; the user still presses Fight.
-for (const chip of document.querySelectorAll(".chip")) {
-  chip.addEventListener("click", () => {
-    fighter1Input.value = chip.dataset.fighter1;
-    fighter2Input.value = chip.dataset.fighter2;
-    formMessage.hidden = true;
-    fightButton.focus();
-  });
-}
+// ---------- Random matchup ----------
+// Fills both names; the user still presses "Enter the arena".
+const RANDOM_MATCHUPS = [
+  ["Grizzly bear", "Silverback gorilla"],
+  ["Medieval knight", "Samurai"],
+  ["T-rex", "Megalodon"],
+  ["100 ducks", "1 horse"],
+  ["Viking", "Spartan"],
+  ["Kraken", "Battleship"],
+  ["A wizard", "A vending machine"],
+  ["A T-rex", "A toaster"],
+  ["Honey badger", "King cobra"],
+  ["Pirate crew", "Ninja clan"],
+];
+let lastMatchupIndex = -1;
+
+document.getElementById("random-btn").addEventListener("click", () => {
+  let index;
+  do {
+    index = Math.floor(Math.random() * RANDOM_MATCHUPS.length);
+  } while (index === lastMatchupIndex);
+  lastMatchupIndex = index;
+
+  [fighter1Input.value, fighter2Input.value] = RANDOM_MATCHUPS[index];
+  formMessage.hidden = true;
+  fightButton.focus();
+});
 
 document.getElementById("try-again-btn").addEventListener("click", () => {
   // Keep the names so the user can retry the same fight.
@@ -263,6 +298,14 @@ async function shrinkForStorage(image) {
   }
 }
 
+// "ready" | "saving" | "saved"
+function setSaveButton(state) {
+  saveButton.disabled = state !== "ready";
+  saveButton.classList.toggle("is-saved", state === "saved");
+  saveButtonText.textContent =
+    state === "saved" ? "Inscribed in your BattleDex" : state === "saving" ? "Inscribing…" : "Inscribe in your BattleDex";
+}
+
 function showSaveMessage(text) {
   saveMessage.textContent = text;
   saveMessage.hidden = false;
@@ -271,8 +314,7 @@ function showSaveMessage(text) {
 saveButton.addEventListener("click", async () => {
   if (!currentFight) return;
 
-  saveButton.disabled = true;
-  saveButton.textContent = "Saving…";
+  setSaveButton("saving");
 
   const fightToSave = currentFight;
   const [imageA, imageB] = await Promise.all([
@@ -297,16 +339,15 @@ saveButton.addEventListener("click", async () => {
   if (result === "ok") {
     fightToSave.saved = true;
     saveRecentFight(fightToSave);
-    saveButton.textContent = "Saved ✓";
-    showSaveMessage("Into the BattleDex it goes! A legend is preserved.");
+    setSaveButton("saved");
+    showSaveMessage("Carved into the hall of champions! A legend is preserved.");
     updateBattledexCount();
   } else {
-    saveButton.disabled = false;
-    saveButton.textContent = "Save to BattleDex";
+    setSaveButton("ready");
     showSaveMessage(
       result === "full"
-        ? "The BattleDex is stuffed to the rafters! Retire some old fights to make room for new legends."
-        : "This browser has locked the BattleDex vault! The fight couldn't be saved."
+        ? "The hall of champions is full to the rafters! Retire some old bouts to make room for new legends."
+        : "This browser has sealed the BattleDex vault! The bout couldn't be inscribed."
     );
   }
 });
